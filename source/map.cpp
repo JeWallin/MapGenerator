@@ -8,6 +8,7 @@ int const MinRooms = 4;
 
 Map::Map(int w, int h)
 {
+    srand (time(NULL));
     this->width = w;
     this->height = h;
 
@@ -21,8 +22,6 @@ Map::Map(int w, int h)
     }
     
 }
-
-
 
 void Map::GenerateRooms()
 {
@@ -82,6 +81,125 @@ void Map::GenerateRooms()
         
     }
     
+}
+
+void Map::GenerateRooms(bool overlapping, bool boxRoom, coord rooms, coord roomSize)
+{
+    int numberOfRooms = rand() % (rooms.y-rooms.x) + rooms.x;
+
+    std::vector<room> currentRooms;
+    int tries = 10;
+    // create rooms
+    for ( int i = 0; i < numberOfRooms; i++)
+    {
+        int width = 1 + (rand() % roomSize.x) + roomSize.y;
+        int height = 1 + (rand() % roomSize.x) + roomSize.y;
+        int x = 1 + rand() %(this->width - width);
+        int y = 1 + rand() %(this->height - height);
+
+        room newRoom(x, y, width, height);
+
+        bool createRoom = true;
+        if(!overlapping)
+        {
+            for ( int i = 0; i < currentRooms.size(); ++i)
+            {
+                if( boxRoom )
+                {
+                    if ( newRoom.BoxCollide(currentRooms[i]))
+                    {
+                        createRoom = false;
+                        if ( --tries != 0)
+                        {
+                            --i;
+                        }
+                        break;
+                    }
+                }
+                else
+                {
+                    if ( newRoom.SphereCollide(currentRooms[i]))
+                    {
+                        createRoom = false;
+                        if ( --tries != 0)
+                        {
+                            --i;
+                        }
+                        break;
+                    }
+                }
+            }
+        }  
+        
+
+        if ( createRoom )
+        {
+            std::cout << newRoom.height << " " << newRoom.width << std::endl;
+            currentRooms.push_back(newRoom);
+        } 
+    }
+    // update mape
+    for ( int i = 0; i < this->mapElements.size(); ++i)
+    {
+        for ( int j = 0; j < this->mapElements[i].size(); ++j)
+        {
+            bool Walkable = false;
+            for ( int roomNr = 0; roomNr < currentRooms.size(); ++roomNr)
+            {
+                room swagDot(i, j, 0, 0);
+                if( boxRoom )
+                {
+                    if ( swagDot.BoxCollide(currentRooms[roomNr]) )
+                    {
+                        Walkable = true;
+                        break;
+                    }
+                }
+                else
+                {
+                    if ( swagDot.SphereCollide(currentRooms[roomNr]) )
+                    {
+                        Walkable = true;
+                        break;
+                    }
+                }
+            }
+            if (Walkable)
+            {
+                this->mapElements[i][j] = MapElement::Walkable;
+            }
+        }
+    }
+
+    for ( int i = 1; i < currentRooms.size(); ++i)
+    {
+        coord Moving = currentRooms[i-1].GetCenter();
+        coord To = currentRooms[i].GetCenter();
+        while (!(Moving.x == To.x && Moving.y == To.y))
+        {
+            if ( Moving.x < To.x)
+            {
+                Moving.x += 1;
+            }
+            else if(Moving.x > To.x)
+            {
+                Moving.x -= 1;
+            }
+            else if ( Moving.x == To.x )
+            {
+                if ( Moving.y < To.y)
+                {
+                    Moving.y += 1;
+                }
+                else if(Moving.y > To.y)
+                {
+                    Moving.y -= 1;
+                }
+            }
+            this->mapElements[Moving.x][Moving.y] = MapElement::Walkable;
+        }
+        
+    }
 }
 
 void Map::PrintMap()

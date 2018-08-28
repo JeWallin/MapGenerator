@@ -2,15 +2,17 @@
 #include <vector>
 
 #include "header/map.h"
-
+#include "header/MapGenerator.h"
 int main()
 {
     
-    Map map(40, 40);
-    
-    map.GenerateRooms();
-    
-    map.PrintMap();
+    MapGenerator mg;
+
+    mg.SetRoomSize(Span(3, 7));
+
+    mg.GenerateMap();
+
+    mg.PrintMap();
 
     return 0;
 }
