@@ -8,7 +8,8 @@
 enum MapEntety
 {
     WALL = 0,
-    WALKABLE = 1
+    WALKABLE = 1,
+    NONE = 2
 };
 
 enum RoomShape
@@ -94,6 +95,16 @@ struct Room
     {
         return (abs(coordinate.x - r.coordinate.x) * 2 < (size.width + r.size.width)) &&
             (abs(coordinate.y - r.coordinate.y) * 2 < (size.height + r.size.height));
+    }
+
+    Coordinate GetCenter() const
+    {
+        Coordinate c( coordinate.x, coordinate.y );
+
+        //c.x += size.width/4;
+        //c.y += size.height/4;
+
+        return c;
     }
 
 };

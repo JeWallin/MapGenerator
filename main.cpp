@@ -8,8 +8,9 @@ int main()
     
     MapGenerator mg;
 
-    mg.SetRoomSize(Span(3, 7));
-
+    mg.SetRoomSize(Span(7, 12));
+    mg.SetNumberOfRooms(Span(2, 5));
+    mg.SetAllowedIntersection(true);
     mg.GenerateMap();
 
     mg.PrintMap();

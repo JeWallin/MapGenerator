@@ -1,5 +1,6 @@
 #include "../header/MapGenerator.h"
 #include <iostream>
+#include <algorithm> 
 
 MapGenerator::MapGenerator()
 {
@@ -27,6 +28,7 @@ void MapGenerator::GenerateBoxRooms( int numberOfRoons )
 {
     // +1 because % will give us a random value from 0 to (roomVari-1);
     int roomVari = RoomSize.max - RoomSize.min + 1;
+
     for( int i = 0; i < numberOfRoons; ++i)
     {
         Coordinate c(
@@ -34,10 +36,13 @@ void MapGenerator::GenerateBoxRooms( int numberOfRoons )
             rand()%MapSize.y
             );
 
+
         SizeStruct s(
             rand()%roomVari + RoomSize.min, 
             rand()%roomVari + RoomSize.min
             );
+
+        
         Room r;
 
         r.coordinate = c;
@@ -92,15 +97,87 @@ void MapGenerator::PlaceRoomsInWorld()
     }
 }
 
+void MapGenerator::CreatePaths()
+{
+    for ( int i = 1; i < Rooms.size(); ++i)
+    {
+        Coordinate start = Rooms[i-1].GetCenter();
+        Coordinate goal = Rooms[i].GetCenter();
+        
+        start.x = std::min(start.x, MapSize.x-1);
+        start.y = std::min(start.y, MapSize.y-1);
+        goal.x = std::min(goal.x, MapSize.x-1);
+        goal.y = std::min(goal.y, MapSize.y-1);
+
+        while(!(start.x == goal.x && start.y == goal.y))
+        {
+            if ( start.x != goal.x )
+            {
+                int dif = goal.x - start.x;
+                dif /= abs(dif);
+                
+                start.x += dif;
+            }
+            else
+            {
+                int dif = goal.y - start.y;
+                dif /= abs(dif);
+
+                start.y += dif;
+            }
+            
+            Map[start.x][start.y] = MapEntety::WALKABLE;
+        }
+    }
+}
+
 void MapGenerator::GenerateRooms()
 {
-    int numberOfRooms = 10;
+    int roomVari = NumberOfRooms.max - NumberOfRooms.min + 1;
+    int numberOfRooms = rand()%roomVari + NumberOfRooms.min;
     if ( RoomType == RoomShape::BOXES )
     {
         GenerateBoxRooms(numberOfRooms);
     }  
 }
 
+void MapGenerator::RemoveDummyWalls()
+{
+    std::vector< Coordinate > ToRemove;
+    for ( int x = 0; x < Map.size(); ++x)
+    {
+        for ( int y = 0; y < Map[x].size(); ++y)
+        {
+            int counter = 0;
+            if ( Map[x][y] == MapEntety::WALL )
+            {
+                Coordinate left(std::max(0, x-1),y);
+                Coordinate up(x, std::max(0, y-1));
+                Coordinate right( std::min(MapSize.x-1, x+1), y);
+                Coordinate down(x, std::min(MapSize.y-1, y+1));
+
+                counter += Map[left.x][left.y] == MapEntety::WALKABLE ? 1 : 0;
+                counter += Map[right.x][right.y] == MapEntety::WALKABLE ? 1 : 0;
+                counter += Map[up.x][up.y] == MapEntety::WALKABLE ? 1 : 0;
+                counter += Map[down.x][down.y] == MapEntety::WALKABLE ? 1 : 0;
+
+
+                if ( counter == 0)
+                {
+                    ToRemove.push_back(Coordinate(x,y));
+                }
+            }
+
+            
+        }
+    }
+
+    for ( int i = 0; i < ToRemove.size(); ++i)
+    {
+        Coordinate c = ToRemove[i];
+        Map[c.x][c.y] = MapEntety::NONE; 
+    }
+}
 
 void MapGenerator::SetAllowedIntersection( bool intersection )
 {
@@ -130,6 +207,10 @@ void MapGenerator::GenerateMap()
     GenerateRooms();
     // Remove walls Where rooms are
     PlaceRoomsInWorld();
+    // Create Paths
+    CreatePaths();
+    // Clear dummy Walls
+    RemoveDummyWalls();
 }
 
 void MapGenerator::PrintMap()
@@ -146,11 +227,15 @@ void MapGenerator::PrintMap()
                     break;
             
                 case MapEntety::WALKABLE:
+                    std::cout << " ";
+                    break;
+
+                case MapEntety::NONE:
                     std::cout << ".";
                     break;
 
                 default:
-                    std::cout << " ";
+                    std::cout << "-";
                     break;
             }
         }

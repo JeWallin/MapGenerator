@@ -26,7 +26,9 @@ private:
     void CreateWorldOfWalls();
     void GenerateBoxRooms(int);
     void PlaceRoomsInWorld();
+    void CreatePaths();
     void GenerateRooms();
+    void RemoveDummyWalls();
 public:
     MapGenerator();
 
