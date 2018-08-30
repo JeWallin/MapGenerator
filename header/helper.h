@@ -53,7 +53,7 @@ struct Coordinate
         y = _y;
     }
 
-    float distanceTo( Coordinate coord )
+    float distanceTo( Coordinate coord ) const
     {
         int a = x - coord.x;
         int b = y - coord.y;

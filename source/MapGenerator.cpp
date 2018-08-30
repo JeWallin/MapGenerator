@@ -227,11 +227,11 @@ void MapGenerator::PrintMap()
                     break;
             
                 case MapEntety::WALKABLE:
-                    std::cout << " ";
+                    std::cout << ".";
                     break;
 
                 case MapEntety::NONE:
-                    std::cout << ".";
+                    std::cout << " ";
                     break;
 
                 default:
